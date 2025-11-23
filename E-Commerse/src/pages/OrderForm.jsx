@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
-import logo from "../assets/Shopme.png";
+import logo from "../assets/ShopMe.png";
 import { BuyerContext } from "../context/BuyerContext";
 
 const OrderForm = () => {
