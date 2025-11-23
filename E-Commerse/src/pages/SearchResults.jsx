@@ -1,0 +1,112 @@
+import React, { useEffect, useState } from "react";
+import { useParams, Link } from "react-router-dom";
+import axios from "axios";
+
+const SearchResults = () => {
+  const { query } = useParams();
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchResults = async () => {
+      try {
+        const res = await axios.get(`http://localhost:5000/api/products/search/${query}`);
+        setResults(res.data);
+      } catch (err) {
+        setError("No products found.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchResults();
+  }, [query]);
+
+  if (loading)
+    return (
+      <p className="text-center mt-10 text-lg font-medium text-gray-700">
+        Loading...
+      </p>
+    );
+
+  if (error)
+    return (
+      <p className="text-center text-red-500 mt-10 text-lg font-semibold">
+        {error}
+      </p>
+    );
+
+  return (
+    <div className="p-4">
+      <h2 className="text-2xl font-bold text-center text-orange-600 mb-6">
+        Search Results for "{query}"
+      </h2>
+
+      {/* 🧠 Responsive layout */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {results.map((product) => (
+          <div
+            key={product._id}
+            className="border rounded-xl shadow hover:shadow-lg transition duration-300 overflow-hidden bg-white"
+          >
+            {/* 🟢 Desktop view (default) */}
+            <div className="hidden sm:block">
+              <div className="flex items-center justify-center bg-gray-100">
+                <img
+                  src={product.image}
+                  alt={product.name}
+                  className="w-full md:w-1/2 h-96 object-contain rounded-xl bg-white p-4"
+                />
+              </div>
+              <div className="p-4 text-center">
+                <h3 className="text-lg font-semibold text-gray-800 truncate">
+                  {product.name}
+                </h3>
+                <p className="text-gray-600 font-medium">₹{product.price}</p>
+                <p className="text-sm text-gray-500">{product.category}</p>
+                <Link
+                  to={`/product/${product._id}`}
+                  className="mt-2 inline-block text-orange-500 font-medium hover:underline"
+                >
+                  View Details
+                </Link>
+              </div>
+            </div>
+
+            {/* 🟣 Mobile view (horizontal style) */}
+            <div className="flex sm:hidden items-center p-3">
+              {/* Left: Image */}
+              <div className="w-28 h-24 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
+                <img
+                  src={product.image}
+                  alt={product.name}
+                  className="object-contain w-full h-full"
+                />
+              </div>
+
+              {/* Right: Info */}
+              <div className="ml-4 flex flex-col justify-between flex-grow">
+                <h3 className="text-base font-semibold text-gray-800 line-clamp-1">
+                  {product.name}
+                </h3>
+                <p className="text-sm text-gray-500">{product.category}</p>
+                <p className="text-orange-600 font-bold text-base mt-1">
+                  ₹{product.price}
+                </p>
+                <Link
+                  to={`/product/${product._id}`}
+                  className="text-sm text-orange-500 mt-1 hover:underline font-medium self-start"
+                >
+                  View
+                </Link>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default SearchResults;
