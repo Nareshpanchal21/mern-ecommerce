@@ -1,0 +1,8 @@
+services:
+  - type: static
+    name: ecommerce-frontend
+    rootDir: E-Commerse
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    buildEnvironment:
+      nodeVersion: 18
