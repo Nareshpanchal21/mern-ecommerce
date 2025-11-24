@@ -2,7 +2,7 @@ import React, { useEffect, useState, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { SupplierContext } from "../context/SupplierContext";
 import { BuyerContext } from "../context/BuyerContext";
-import { get, post } from "../services/api"; // ✅ Use api.js
+import { get, post, getRenderURL } from "../services/api"; // ✅ centralized api.js
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -19,7 +19,9 @@ const ProductDetail = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const data = await get(`/products/${id}`);
+        const endpoint = `/products/${id}`;
+        console.log("Fetching product from:", getRenderURL() + endpoint);
+        const data = await get(endpoint);
         setProduct(data);
       } catch (err) {
         console.error("Error fetching product:", err.message);
@@ -42,7 +44,10 @@ const ProductDetail = () => {
     }
 
     try {
-      const data = await post("/cart/add", {
+      const endpoint = "/cart/add";
+      console.log("Adding to cart via:", getRenderURL() + endpoint);
+
+      const data = await post(endpoint, {
         userId,
         userType,
         productId: product._id,
@@ -78,7 +83,7 @@ const ProductDetail = () => {
         <div className="flex-1 md:ml-8 mt-6 md:mt-0">
           <h2 className="text-3xl font-bold text-gray-800 mb-2">{product.name}</h2>
           <p className="text-orange-600 font-bold text-xl mb-4">₹{product.price}</p>
-          <p className="text-gray-600 mb-6">{product.description}</p>
+          <p className="text-gray-600 mb-6">{product.description || "No description available."}</p>
 
           <div className="flex items-center gap-3 mb-6">
             <label className="text-gray-700 font-semibold">Quantity:</label>
@@ -86,7 +91,7 @@ const ProductDetail = () => {
               type="number"
               min="1"
               value={qty}
-              onChange={(e) => setQty(e.target.value)}
+              onChange={(e) => setQty(Number(e.target.value))}
               className="border border-gray-400 rounded-md w-20 p-2"
             />
           </div>

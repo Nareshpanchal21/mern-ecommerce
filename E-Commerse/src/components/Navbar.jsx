@@ -3,7 +3,7 @@ import React, { useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { SupplierContext } from "../context/SupplierContext";
 import { BuyerContext } from "../context/BuyerContext";
-import { post } from "../services/api"; // ✅ api.js se post use
+import { post, getRenderURL } from "../services/api"; // ✅ Render ready
 
 const Navbar = () => {
   const { supplier, logout: logoutSupplier } = useContext(SupplierContext);
@@ -37,19 +37,20 @@ const Navbar = () => {
     const name = isSignup ? e.target.name?.value : null;
 
     try {
-      const endpoint = isSignup
-        ? "/buyer/register"
-        : "/buyer/login";
-
+      // ✅ Remove /api from endpoint, getRenderURL() already includes /api
+      const endpoint = isSignup ? "buyer/register" : "buyer/login"; 
       const payload = isSignup ? { name, email, password } : { email, password };
-      const data = await post(endpoint, payload); // ✅ backend ready
+
+      console.log("API Call:", getRenderURL() + "/" + endpoint, payload);
+
+      const data = await post(endpoint, payload);
 
       if (data.buyer) loginBuyer(data.buyer);
 
       alert(data.message || "Success");
       setShowAuthModal(false);
     } catch (err) {
-      console.error(err);
+      console.error("Auth error:", err);
       alert(err.message || "Something went wrong. Check server routes.");
     }
   };

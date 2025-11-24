@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import { BuyerContext } from "../context/BuyerContext";
 import { useNavigate } from "react-router-dom";
-import { get, post, del } from "../services/api"; // ✅ centralized api.js
+import { get, post, del, getRenderURL } from "../services/api"; // ✅ centralized api.js
 
 const BuyerDashboard = () => {
   const { buyer, logoutBuyer } = useContext(BuyerContext);
@@ -19,7 +19,6 @@ const BuyerDashboard = () => {
     pincode: "",
   });
 
-  // 🟢 Load buyer data
   useEffect(() => {
     if (!buyer) {
       navigate("/");
@@ -34,30 +33,33 @@ const BuyerDashboard = () => {
     setLoading(false);
   };
 
-  // 🟢 Fetch Addresses
   const fetchAddresses = async () => {
     try {
-      const res = await get(`/address/${buyer._id}`);
+      const endpoint = `/address/${buyer._id}`;
+      console.log("Fetching addresses from:", getRenderURL() + endpoint);
+      const res = await get(endpoint); // ✅ get() handles base URL
       setAddresses(res);
     } catch (error) {
       console.error("❌ Error fetching addresses:", error);
     }
   };
 
-  // 🟢 Fetch Orders
   const fetchOrders = async () => {
     try {
-      const res = await get(`/orders/${buyer._id}`);
+      const endpoint = `/orders/${buyer._id}`;
+      console.log("Fetching orders from:", getRenderURL() + endpoint);
+      const res = await get(endpoint); // ✅ get() handles base URL
       setOrders(res);
     } catch (error) {
       console.error("❌ Error fetching orders:", error);
     }
   };
 
-  // 🟢 Cancel (Delete) Order — remove instantly from UI
   const cancelOrder = async (orderId) => {
     try {
-      const res = await del(`/orders/cancel/${orderId}`);
+      const endpoint = `/orders/cancel/${orderId}`;
+      console.log("Cancelling order via:", getRenderURL() + endpoint);
+      const res = await del(endpoint);
       alert(res.message || "✅ Order cancelled successfully!");
       setOrders((prev) => prev.filter((order) => order._id !== orderId));
     } catch (error) {
@@ -66,7 +68,6 @@ const BuyerDashboard = () => {
     }
   };
 
-  // 🟢 Handle Address Form
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -74,8 +75,10 @@ const BuyerDashboard = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const endpoint = "/address/add";
+      console.log("Adding address via:", getRenderURL() + endpoint);
       const dataToSend = { ...formData, userId: buyer._id };
-      const res = await post("/address/add", dataToSend);
+      const res = await post(endpoint, dataToSend);
       alert(res.message || "Address added!");
       setShowForm(false);
       setFormData({ name: "", mobile: "", street: "", city: "", state: "", pincode: "" });

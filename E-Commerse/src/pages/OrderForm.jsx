@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { get, post } from "../services/api"; // ✅ centralized api.js
+import { get, post, getRenderURL } from "../services/api"; // ✅ centralized api.js
 import logo from "../assets/ShopMe.png";
 import { BuyerContext } from "../context/BuyerContext";
 
@@ -26,7 +26,9 @@ const OrderForm = () => {
     const fetchAddress = async () => {
       if (!buyer) return;
       try {
-        const res = await get(`/address/${buyer._id}`);
+        const endpoint = `/address/${buyer._id}`;
+        console.log("Fetching buyer address from:", getRenderURL() + endpoint);
+        const res = await get(endpoint);
         if (res.length > 0) {
           const addr = res[0];
           setForm({
@@ -37,7 +39,7 @@ const OrderForm = () => {
           });
         }
       } catch (error) {
-        console.log("Error fetching address:", error);
+        console.error("❌ Error fetching address:", error);
       }
     };
     fetchAddress();
@@ -58,7 +60,10 @@ const OrderForm = () => {
     }
 
     try {
-      await post("/orders", {
+      const endpoint = "/orders";
+      console.log("Placing order via:", getRenderURL() + endpoint);
+
+      await post(endpoint, {
         buyerId: buyer._id,
         productName: product.name,
         price: total,
@@ -73,7 +78,7 @@ const OrderForm = () => {
       setMessage("✅ Order placed successfully!");
       setTimeout(() => navigate("/buyer-dashboard"), 1500);
     } catch (error) {
-      console.error("Order error:", error);
+      console.error("❌ Order error:", error);
       setMessage("❌ Failed to place order");
     }
   };

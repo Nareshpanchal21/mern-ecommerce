@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { get } from "../services/api"; // ✅ Use api.js
+import { get, getRenderURL } from "../services/api"; // ✅ centralized api.js
 
 const CategoryProducts = () => {
   const { category } = useParams();
@@ -11,10 +11,12 @@ const CategoryProducts = () => {
   useEffect(() => {
     const fetchCategoryProducts = async () => {
       try {
-        const data = await get(`/products/category/${category}`);
+        const endpoint = `/products/category/${category}`;
+        console.log("Fetching category products from:", getRenderURL() + endpoint);
+        const data = await get(endpoint); // ✅ centralized API call
         setProducts(data);
       } catch (err) {
-        console.error("Error fetching category products:", err.message);
+        console.error("❌ Error fetching category products:", err.message || err);
         setProducts([]);
       } finally {
         setLoading(false);
@@ -24,7 +26,8 @@ const CategoryProducts = () => {
     fetchCategoryProducts();
   }, [category]);
 
-  if (loading) return <p className="text-center py-20">Loading...</p>;
+  if (loading)
+    return <p className="text-center py-20 text-gray-500">Loading...</p>;
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">

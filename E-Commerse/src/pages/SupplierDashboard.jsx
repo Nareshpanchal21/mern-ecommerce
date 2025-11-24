@@ -26,14 +26,17 @@ const SupplierDashboard = () => {
   // 🔹 Fetch supplier's uploaded products
   useEffect(() => {
     if (!supplier?._id) return;
+
     const fetchProducts = async () => {
       try {
+        // ✅ Use query param route instead of /supplier/:id
         const data = await get(`/products?supplierId=${supplier._id}`);
         setProducts(data);
       } catch (err) {
         console.error("Error fetching products:", err);
       }
     };
+
     fetchProducts();
   }, [supplier]);
 
@@ -55,7 +58,7 @@ const SupplierDashboard = () => {
         ...product,
         supplierId: supplier?._id,
       });
-      setProducts((prev) => [...prev, data]);
+      setProducts((prev) => [...prev, data]); // ✅ Add to list immediately
       setProduct({
         name: "",
         price: "",

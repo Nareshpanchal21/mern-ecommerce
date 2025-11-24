@@ -1,7 +1,6 @@
-// src/components/ProductsForYou.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { get } from "../services/api"; // ✅ api.js se get use
+import { getRenderURL, get } from "../services/api"; // ✅ Render-safe import
 
 const ProductsForYou = () => {
   const [products, setProducts] = useState([]);
@@ -10,7 +9,12 @@ const ProductsForYou = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const data = await get("/products"); // ✅ backend ready
+        // ✅ endpoint without /api, getRenderURL already includes /api
+        const apiEndpoint = "/products"; 
+        const fullURL = getRenderURL() + apiEndpoint;
+        console.log("Fetching products from:", fullURL);
+
+        const data = await get(apiEndpoint); // ✅ get() handles base URL
         const normalProducts = data.filter(p => !p.discount || p.discount === 0);
         setProducts(normalProducts);
       } catch (err) {

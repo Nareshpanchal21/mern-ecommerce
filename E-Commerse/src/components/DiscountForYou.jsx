@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { get } from "../services/api"; // ✅ import get function
+import { get, getRenderURL } from "../services/api"; // ✅ Render-safe import
 
 const DiscountForYou = () => {
   const [discountProducts, setDiscountProducts] = useState([]);
@@ -9,11 +9,15 @@ const DiscountForYou = () => {
   useEffect(() => {
     const fetchDiscountedProducts = async () => {
       try {
-        const data = await get("/products"); // ✅ Render-ready
+        // ✅ Only /products because base URL already has /api in api.js
+        const endpoint = "/products"; 
+        console.log("Fetching discounted products from:", getRenderURL() + endpoint);
+
+        const data = await get(endpoint);
         const discounted = data.filter((p) => p.discount && p.discount > 0);
         setDiscountProducts(discounted);
       } catch (err) {
-        console.error("Error fetching products:", err);
+        console.error("Error fetching discounted products:", err);
       }
     };
 
