@@ -1,5 +1,5 @@
 // ✅ API base URL using Render or fallback to localhost
-const BASE_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000/api";
+const BASE_URL = (import.meta.env.VITE_BACKEND_URL || "http://localhost:5000/api/");
 
 // 🔹 GET request
 export const get = async (endpoint) => {
@@ -41,4 +41,5 @@ export const del = async (endpoint) => {
 };
 
 // 🔹 Optional helper to get Render URL anywhere
-export const getRenderURL = () => import.meta.env.VITE_BACKEND_URL || "https://mern-ecommerce-kmq2.onrender.com/api";
+export const getRenderURL = () =>
+  (import.meta.env.VITE_BACKEND_URL || "https://mern-ecommerce-kmq2.onrender.com/api/");

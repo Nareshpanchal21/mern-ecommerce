@@ -37,13 +37,14 @@ const Navbar = () => {
     const name = isSignup ? e.target.name?.value : null;
 
     try {
-      // ✅ Remove /api from endpoint, getRenderURL() already includes /api
+      // ✅ Fix buyer login/register URL
       const endpoint = isSignup ? "buyer/register" : "buyer/login"; 
       const payload = isSignup ? { name, email, password } : { email, password };
 
-      console.log("API Call:", getRenderURL() + "/" + endpoint, payload);
+      const url = `/${endpoint}`; // ✅ ensures proper slash
+      console.log("API Call:", getRenderURL() + url, payload);
 
-      const data = await post(endpoint, payload);
+      const data = await post(url, payload);
 
       if (data.buyer) loginBuyer(data.buyer);
 
