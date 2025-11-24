@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { post } from "../services/api"; // ✅ import post function
 
 const SupplierRegister = () => {
   const [formData, setFormData] = useState({
@@ -18,22 +19,11 @@ const SupplierRegister = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch("http://localhost:5000/api/supplier/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        alert("Registration successful!");
-        navigate("/supplier"); // redirect to login
-      } else {
-        alert(data.message || "Registration failed");
-      }
+      const data = await post("/supplier/register", formData); // ✅ Render-ready
+      alert("Registration successful!");
+      navigate("/supplier"); // redirect to login
     } catch (error) {
-      alert("Error connecting to server");
+      alert(error.message || "Registration failed / server error");
       console.error(error);
     }
   };

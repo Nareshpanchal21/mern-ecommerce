@@ -1,14 +1,15 @@
 import React, { useEffect, useState, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { SupplierContext } from "../context/SupplierContext";
-import { BuyerContext } from "../context/BuyerContext"; // ✅ Added buyer context
+import { BuyerContext } from "../context/BuyerContext";
+import { get, post } from "../services/api"; // ✅ Use api.js
 
 const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
   const { supplier } = useContext(SupplierContext);
-  const { buyer } = useContext(BuyerContext); // ✅ Access buyer info too
+  const { buyer } = useContext(BuyerContext);
 
   const [product, setProduct] = useState(null);
   const [qty, setQty] = useState(1);
@@ -16,17 +17,22 @@ const ProductDetail = () => {
 
   // ✅ Fetch single product
   useEffect(() => {
-    fetch(`http://localhost:5000/api/products/${id}`)
-      .then((res) => res.json())
-      .then((data) => setProduct(data))
-      .catch((err) => console.error("Error fetching product:", err));
+    const fetchProduct = async () => {
+      try {
+        const data = await get(`/products/${id}`);
+        setProduct(data);
+      } catch (err) {
+        console.error("Error fetching product:", err.message);
+        setMessage("❌ Failed to load product.");
+      }
+    };
+    fetchProduct();
   }, [id]);
 
   // ✅ Add to Cart
   const handleAddToCart = async () => {
     if (!product) return;
 
-    // ✅ Determine user info
     const userId = supplier?._id || buyer?._id;
     const userType = supplier ? "supplier" : buyer ? "buyer" : null;
 
@@ -36,33 +42,22 @@ const ProductDetail = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:5000/api/cart/add", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId,
-          userType,
-          productId: product._id,
-          quantity: Number(qty),
-        }),
+      const data = await post("/cart/add", {
+        userId,
+        userType,
+        productId: product._id,
+        quantity: Number(qty),
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        setMessage("✅ Product added to cart successfully!");
-      } else {
-        setMessage(`❌ Failed to add: ${data.message}`);
-      }
+      setMessage(data.message || "✅ Product added to cart successfully!");
     } catch (error) {
-      console.error("Error adding to cart:", error);
+      console.error("Error adding to cart:", error.message);
       setMessage("❌ Something went wrong while adding to cart.");
     }
   };
 
-  if (!product) {
+  if (!product)
     return <p className="text-center py-20 text-gray-500">Loading product...</p>;
-  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-6">

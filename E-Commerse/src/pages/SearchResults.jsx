@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import axios from "axios";
+import { get } from "../services/api"; // ✅ Use api.js
 
 const SearchResults = () => {
   const { query } = useParams();
@@ -11,9 +11,10 @@ const SearchResults = () => {
   useEffect(() => {
     const fetchResults = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/api/products/search/${query}`);
-        setResults(res.data);
+        const data = await get(`/products/search/${query}`);
+        setResults(data);
       } catch (err) {
+        console.error(err);
         setError("No products found.");
       } finally {
         setLoading(false);
@@ -43,14 +44,13 @@ const SearchResults = () => {
         Search Results for "{query}"
       </h2>
 
-      {/* 🧠 Responsive layout */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {results.map((product) => (
           <div
             key={product._id}
             className="border rounded-xl shadow hover:shadow-lg transition duration-300 overflow-hidden bg-white"
           >
-            {/* 🟢 Desktop view (default) */}
+            {/* Desktop */}
             <div className="hidden sm:block">
               <div className="flex items-center justify-center bg-gray-100">
                 <img
@@ -74,9 +74,8 @@ const SearchResults = () => {
               </div>
             </div>
 
-            {/* 🟣 Mobile view (horizontal style) */}
+            {/* Mobile */}
             <div className="flex sm:hidden items-center p-3">
-              {/* Left: Image */}
               <div className="w-28 h-24 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
                 <img
                   src={product.image}
@@ -85,7 +84,6 @@ const SearchResults = () => {
                 />
               </div>
 
-              {/* Right: Info */}
               <div className="ml-4 flex flex-col justify-between flex-grow">
                 <h3 className="text-base font-semibold text-gray-800 line-clamp-1">
                   {product.name}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { get, post, put, del } from "../services/api";
 
 const SupplierDashboard = () => {
   const [product, setProduct] = useState({
@@ -7,7 +8,7 @@ const SupplierDashboard = () => {
     category: "",
     image: "",
     description: "",
-    discount: "", // 🟢 Added discount field
+    discount: "",
   });
   const [supplier, setSupplier] = useState(null);
   const [products, setProducts] = useState([]);
@@ -25,10 +26,15 @@ const SupplierDashboard = () => {
   // 🔹 Fetch supplier's uploaded products
   useEffect(() => {
     if (!supplier?._id) return;
-    fetch(`http://localhost:5000/api/products?supplierId=${supplier._id}`)
-      .then((res) => res.json())
-      .then((data) => setProducts(data))
-      .catch((err) => console.error("Error fetching products:", err));
+    const fetchProducts = async () => {
+      try {
+        const data = await get(`/products?supplierId=${supplier._id}`);
+        setProducts(data);
+      } catch (err) {
+        console.error("Error fetching products:", err);
+      }
+    };
+    fetchProducts();
   }, [supplier]);
 
   // 🔹 Input Change Handler
@@ -45,28 +51,20 @@ const SupplierDashboard = () => {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/products/upload", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...product, supplierId: supplier?._id }),
+      const data = await post("/products/upload", {
+        ...product,
+        supplierId: supplier?._id,
       });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        setProducts((prev) => [...prev, data]);
-        setProduct({
-          name: "",
-          price: "",
-          category: "",
-          image: "",
-          description: "",
-          discount: "", // 🟢 Reset discount
-        });
-        alert("✅ Product uploaded successfully!");
-      } else {
-        alert(data.message || "Error uploading product");
-      }
+      setProducts((prev) => [...prev, data]);
+      setProduct({
+        name: "",
+        price: "",
+        category: "",
+        image: "",
+        description: "",
+        discount: "",
+      });
+      alert("✅ Product uploaded successfully!");
     } catch (err) {
       console.error(err);
       alert("❌ Server error while uploading");
@@ -82,7 +80,7 @@ const SupplierDashboard = () => {
       category: prod.category,
       image: prod.image,
       description: prod.description,
-      discount: prod.discount || "", // 🟢 Load discount value
+      discount: prod.discount || "",
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -93,30 +91,20 @@ const SupplierDashboard = () => {
     if (!editingProduct) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/api/products/${editingProduct._id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(product),
+      const data = await put(`/products/${editingProduct._id}`, product);
+      setProducts((prev) =>
+        prev.map((p) => (p._id === editingProduct._id ? data : p))
+      );
+      setEditingProduct(null);
+      setProduct({
+        name: "",
+        price: "",
+        category: "",
+        image: "",
+        description: "",
+        discount: "",
       });
-
-      const data = await res.json();
-      if (res.ok) {
-        setProducts((prev) =>
-          prev.map((p) => (p._id === editingProduct._id ? data : p))
-        );
-        setEditingProduct(null);
-        setProduct({
-          name: "",
-          price: "",
-          category: "",
-          image: "",
-          description: "",
-          discount: "", // 🟢 Reset discount
-        });
-        alert("✅ Product updated successfully!");
-      } else {
-        alert(data.message || "Error updating product");
-      }
+      alert("✅ Product updated successfully!");
     } catch (err) {
       console.error(err);
       alert("❌ Server error while updating");
@@ -128,16 +116,9 @@ const SupplierDashboard = () => {
     if (!window.confirm("Are you sure you want to delete this product?")) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/api/products/${id}`, {
-        method: "DELETE",
-      });
-
-      if (res.ok) {
-        setProducts((prev) => prev.filter((p) => p._id !== id));
-        alert("🗑️ Product deleted successfully!");
-      } else {
-        alert("Error deleting product");
-      }
+      await del(`/products/${id}`);
+      setProducts((prev) => prev.filter((p) => p._id !== id));
+      alert("🗑️ Product deleted successfully!");
     } catch (err) {
       console.error(err);
       alert("❌ Server error while deleting");
@@ -221,7 +202,6 @@ const SupplierDashboard = () => {
             />
           </div>
 
-          {/* 🟢 Optional Discount Field */}
           <div>
             <label className="block text-gray-700 mb-1 font-medium">Discount (%)</label>
             <input
@@ -270,7 +250,7 @@ const SupplierDashboard = () => {
                     category: "",
                     image: "",
                     description: "",
-                    discount: "", // 🟢 Reset discount
+                    discount: "",
                   });
                 }}
                 className="ml-3 bg-gray-500 text-white py-2 px-5 rounded-lg hover:bg-gray-600"
@@ -293,7 +273,6 @@ const SupplierDashboard = () => {
                   key={p._id}
                   className="border rounded-lg shadow-md p-4 bg-white hover:shadow-lg transition relative"
                 >
-                  {/* 🟢 Discount Label */}
                   {p.discount > 0 && (
                     <span className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
                       {p.discount}% OFF
@@ -310,7 +289,6 @@ const SupplierDashboard = () => {
                   <p className="text-sm text-gray-600 mt-2">{p.category}</p>
                   <p className="text-xs text-gray-500 mt-2">{p.description}</p>
 
-                  {/* Edit / Delete Buttons */}
                   <div className="flex justify-between mt-3">
                     <button
                       onClick={() => handleEditClick(p)}

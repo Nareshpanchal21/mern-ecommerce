@@ -1,19 +1,23 @@
+// src/components/ProductsForYou.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { get } from "../services/api"; // ✅ api.js se get use
 
 const ProductsForYou = () => {
   const [products, setProducts] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/products")
-      .then((res) => res.json())
-      .then((data) => {
-        // 🔹 Filter products with discount = 0 or empty
+    const fetchProducts = async () => {
+      try {
+        const data = await get("/products"); // ✅ backend ready
         const normalProducts = data.filter(p => !p.discount || p.discount === 0);
         setProducts(normalProducts);
-      })
-      .catch((err) => console.error("Error fetching products:", err));
+      } catch (err) {
+        console.error("Error fetching products:", err);
+      }
+    };
+    fetchProducts();
   }, []);
 
   return (

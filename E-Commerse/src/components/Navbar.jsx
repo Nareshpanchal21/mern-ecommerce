@@ -1,8 +1,9 @@
+// src/components/Navbar.jsx
 import React, { useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { SupplierContext } from "../context/SupplierContext";
 import { BuyerContext } from "../context/BuyerContext";
-import axios from "axios";
+import { post } from "../services/api"; // ✅ api.js se post use
 
 const Navbar = () => {
   const { supplier, logout: logoutSupplier } = useContext(SupplierContext);
@@ -14,7 +15,6 @@ const Navbar = () => {
   const [isSignup, setIsSignup] = useState(false);
   const navigate = useNavigate();
 
-  // ✅ Logout for both Buyer & Supplier
   const handleLogout = () => {
     if (buyer) logoutBuyer();
     if (supplier) logoutSupplier();
@@ -22,7 +22,6 @@ const Navbar = () => {
     navigate("/");
   };
 
-  // 🔍 Search
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchTerm.trim() !== "") {
@@ -31,7 +30,6 @@ const Navbar = () => {
     }
   };
 
-  // 🧾 Login / Signup for Buyer
   const handleAuth = async (e) => {
     e.preventDefault();
     const email = e.target.email.value;
@@ -39,40 +37,34 @@ const Navbar = () => {
     const name = isSignup ? e.target.name?.value : null;
 
     try {
-      const url = isSignup
-        ? "http://localhost:5000/api/buyer/register"
-        : "http://localhost:5000/api/buyer/login";
+      const endpoint = isSignup
+        ? "/buyer/register"
+        : "/buyer/login";
 
       const payload = isSignup ? { name, email, password } : { email, password };
-      const res = await axios.post(url, payload);
+      const data = await post(endpoint, payload); // ✅ backend ready
 
-      if (res.data.buyer) {
-        loginBuyer(res.data.buyer);
-      }
+      if (data.buyer) loginBuyer(data.buyer);
 
-      alert(res.data.message || "Success");
+      alert(data.message || "Success");
       setShowAuthModal(false);
     } catch (err) {
       console.error(err);
-      alert(err.response?.data?.message || "Something went wrong. Check server routes.");
+      alert(err.message || "Something went wrong. Check server routes.");
     }
   };
 
   return (
     <>
-     {/* 🧭 Navbar */}
-<nav className="flex flex-wrap justify-between items-center px-4 py-3 bg-white shadow-md sticky top-0 z-50">
-  {/* 🛍️ Logo */}
-  <div
-    onClick={() => navigate("/")}
-    className="flex items-center gap-2 text-2xl font-bold cursor-pointer"
-  >
-    <i className="fa-solid fa-bag-shopping text-orange-500"></i>
-    <span className="text-black">ShopMe</span>
-  </div>
+      <nav className="flex flex-wrap justify-between items-center px-4 py-3 bg-white shadow-md sticky top-0 z-50">
+        <div
+          onClick={() => navigate("/")}
+          className="flex items-center gap-2 text-2xl font-bold cursor-pointer"
+        >
+          <i className="fa-solid fa-bag-shopping text-orange-500"></i>
+          <span className="text-black">ShopMe</span>
+        </div>
 
-
-        {/* 🔍 Search (Now Visible on Mobile Too) */}
         <form
           onSubmit={handleSearch}
           className="flex items-center w-full sm:w-2/5 mt-3 sm:mt-0 order-last sm:order-none"
@@ -92,9 +84,7 @@ const Navbar = () => {
           </button>
         </form>
 
-        {/* ⚙️ Right Menu */}
         <div className="flex items-center gap-4">
-          {/* 🧑‍💼 Not Logged In */}
           {!supplier && !buyer && (
             <>
               <button
@@ -103,7 +93,6 @@ const Navbar = () => {
               >
                 Login / Signup
               </button>
-
               <Link
                 to="/supplier"
                 className="text-gray-700 text-sm sm:text-base hover:text-orange-500 block"
@@ -113,7 +102,6 @@ const Navbar = () => {
             </>
           )}
 
-          {/* 👤 Supplier Menu */}
           {supplier && (
             <div className="relative">
               <button
@@ -122,7 +110,6 @@ const Navbar = () => {
               >
                 <i className="fa fa-user"></i>
               </button>
-
               {showMenu && (
                 <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 shadow-lg rounded-lg p-3 z-50">
                   <p className="text-sm text-gray-700 mb-2 border-b pb-2">
@@ -146,7 +133,6 @@ const Navbar = () => {
             </div>
           )}
 
-          {/* 👤 Buyer Menu */}
           {buyer && !supplier && (
             <div className="relative">
               <button
@@ -155,7 +141,6 @@ const Navbar = () => {
               >
                 <i className="fa fa-user"></i>
               </button>
-
               {showMenu && (
                 <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 shadow-lg rounded-lg p-3 z-50">
                   <p className="text-sm text-gray-700 mb-2 border-b pb-2">
@@ -179,7 +164,6 @@ const Navbar = () => {
             </div>
           )}
 
-          {/* 🛒 Cart */}
           <Link
             to="/cart"
             className="text-gray-700 text-lg hover:text-orange-500 relative"
@@ -189,7 +173,6 @@ const Navbar = () => {
         </div>
       </nav>
 
-      {/* 🔒 Login / Signup Modal */}
       {showAuthModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-[1000] px-4">
           <div className="bg-white rounded-lg shadow-lg w-full max-w-sm p-6 relative">

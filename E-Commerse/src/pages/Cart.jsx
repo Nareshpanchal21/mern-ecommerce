@@ -1,57 +1,50 @@
 import React, { useEffect, useState, useContext } from "react";
 import { SupplierContext } from "../context/SupplierContext";
-import { BuyerContext } from "../context/BuyerContext"; // ✅ Added
+import { BuyerContext } from "../context/BuyerContext";
 import { useNavigate } from "react-router-dom";
+import { get, del } from "../services/api"; // ✅ Use api.js
 
 const Cart = () => {
   const { supplier } = useContext(SupplierContext);
-  const { buyer } = useContext(BuyerContext); // ✅ Added buyer context
-
+  const { buyer } = useContext(BuyerContext);
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // ✅ Detect userId and userType properly
-    const userId = buyer?._id || supplier?._id || null;
-    const userType = buyer ? "buyer" : supplier ? "supplier" : null;
+    const fetchCart = async () => {
+      const userId = buyer?._id || supplier?._id || null;
+      const userType = buyer ? "buyer" : supplier ? "supplier" : null;
 
-    if (!userId || !userType) {
-      console.error("❌ No user ID or userType found for fetching cart");
-      setLoading(false);
-      return;
-    }
+      if (!userId || !userType) {
+        console.error("❌ No user ID or userType found for fetching cart");
+        setLoading(false);
+        return;
+      }
 
-    // ✅ Fetch cart with userType query
-    fetch(`http://localhost:5000/api/cart/${userId}?userType=${userType}`)
-      .then(async (res) => {
-        if (!res.ok) {
-          const err = await res.json();
-          throw new Error(err.message || "Failed to fetch cart");
-        }
-        return res.json();
-      })
-      .then((data) => {
+      try {
+        const data = await get(`/cart/${userId}?userType=${userType}`);
         setCartItems(Array.isArray(data) ? data : []);
-      })
-      .catch((err) => {
+      } catch (err) {
         console.error("Error fetching cart:", err.message);
         setCartItems([]);
-      })
-      .finally(() => setLoading(false));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCart();
   }, [buyer, supplier]);
 
-  // 🧹 Remove item
   const handleRemove = async (id) => {
     try {
-      await fetch(`http://localhost:5000/api/cart/${id}`, { method: "DELETE" });
+      await del(`/cart/${id}`);
       setCartItems((prev) => prev.filter((item) => item._id !== id));
     } catch (err) {
       console.error("Error deleting item:", err);
     }
   };
 
-  // 🔄 Go to product detail
   const handleProductClick = (productId) => {
     navigate(`/product/${productId}`);
   };

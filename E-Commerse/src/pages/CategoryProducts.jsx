@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { get } from "../services/api"; // ✅ Use api.js
 
 const CategoryProducts = () => {
   const { category } = useParams();
@@ -8,16 +9,19 @@ const CategoryProducts = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch(`http://localhost:5000/api/products/category/${category}`)
-      .then((res) => res.json())
-      .then((data) => {
+    const fetchCategoryProducts = async () => {
+      try {
+        const data = await get(`/products/category/${category}`);
         setProducts(data);
+      } catch (err) {
+        console.error("Error fetching category products:", err.message);
+        setProducts([]);
+      } finally {
         setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Error fetching category products:", err);
-        setLoading(false);
-      });
+      }
+    };
+
+    fetchCategoryProducts();
   }, [category]);
 
   if (loading) return <p className="text-center py-20">Loading...</p>;
@@ -36,7 +40,9 @@ const CategoryProducts = () => {
       </h2>
 
       {products.length === 0 ? (
-        <p className="text-center text-gray-500">No products found in this category.</p>
+        <p className="text-center text-gray-500">
+          No products found in this category.
+        </p>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
           {products.map((product) => (

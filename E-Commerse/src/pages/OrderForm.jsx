@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import axios from "axios";
+import { get, post } from "../services/api"; // ✅ centralized api.js
 import logo from "../assets/ShopMe.png";
 import { BuyerContext } from "../context/BuyerContext";
 
@@ -26,9 +26,9 @@ const OrderForm = () => {
     const fetchAddress = async () => {
       if (!buyer) return;
       try {
-        const res = await axios.get(`http://localhost:5000/api/address/${buyer._id}`);
-        if (res.data.length > 0) {
-          const addr = res.data[0];
+        const res = await get(`/address/${buyer._id}`);
+        if (res.length > 0) {
+          const addr = res[0];
           setForm({
             name: addr.name,
             address: `${addr.street}, ${addr.city}, ${addr.state}, ${addr.pincode}`,
@@ -58,7 +58,7 @@ const OrderForm = () => {
     }
 
     try {
-      await axios.post("http://localhost:5000/api/orders", {
+      await post("/orders", {
         buyerId: buyer._id,
         productName: product.name,
         price: total,
@@ -71,7 +71,6 @@ const OrderForm = () => {
       });
 
       setMessage("✅ Order placed successfully!");
-      // 🟢 Corrected route here
       setTimeout(() => navigate("/buyer-dashboard"), 1500);
     } catch (error) {
       console.error("Order error:", error);

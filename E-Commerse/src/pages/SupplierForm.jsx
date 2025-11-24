@@ -1,15 +1,12 @@
 import React, { useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { SupplierContext } from "../context/SupplierContext"; // ✅ import context
+import { SupplierContext } from "../context/SupplierContext";
+import { post } from "../services/api"; // ✅ import post function
 
 const SupplierForm = () => {
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
-
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const navigate = useNavigate();
-  const { login } = useContext(SupplierContext); // ✅ use context
+  const { login } = useContext(SupplierContext);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -18,23 +15,12 @@ const SupplierForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch("http://localhost:5000/api/supplier/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        alert("Login successful!");
-        login(data); // ✅ this updates context + localStorage
-        navigate("/"); // redirect to home
-      } else {
-        alert(data.message || "Invalid credentials");
-      }
+      const data = await post("/supplier/login", formData); // ✅ Render-ready
+      alert("Login successful!");
+      login(data);
+      navigate("/");
     } catch (error) {
-      alert("Error connecting to server");
+      alert(error.message || "Invalid credentials / server error");
       console.error(error);
     }
   };
@@ -48,9 +34,7 @@ const SupplierForm = () => {
 
         <form className="space-y-5" onSubmit={handleSubmit}>
           <div>
-            <label className="block text-gray-700 mb-1 font-medium">
-              Email
-            </label>
+            <label className="block text-gray-700 mb-1 font-medium">Email</label>
             <input
               type="text"
               name="email"
@@ -63,9 +47,7 @@ const SupplierForm = () => {
           </div>
 
           <div>
-            <label className="block text-gray-700 mb-1 font-medium">
-              Password
-            </label>
+            <label className="block text-gray-700 mb-1 font-medium">Password</label>
             <input
               type="password"
               name="password"

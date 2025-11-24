@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import { BuyerContext } from "../context/BuyerContext";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { get, post, del } from "../services/api"; // ✅ centralized api.js
 
 const BuyerDashboard = () => {
   const { buyer, logoutBuyer } = useContext(BuyerContext);
@@ -37,8 +37,8 @@ const BuyerDashboard = () => {
   // 🟢 Fetch Addresses
   const fetchAddresses = async () => {
     try {
-      const res = await axios.get(`http://localhost:5000/api/address/${buyer._id}`);
-      setAddresses(res.data);
+      const res = await get(`/address/${buyer._id}`);
+      setAddresses(res);
     } catch (error) {
       console.error("❌ Error fetching addresses:", error);
     }
@@ -47,8 +47,8 @@ const BuyerDashboard = () => {
   // 🟢 Fetch Orders
   const fetchOrders = async () => {
     try {
-      const res = await axios.get(`http://localhost:5000/api/orders/${buyer._id}`);
-      setOrders(res.data);
+      const res = await get(`/orders/${buyer._id}`);
+      setOrders(res);
     } catch (error) {
       console.error("❌ Error fetching orders:", error);
     }
@@ -57,12 +57,9 @@ const BuyerDashboard = () => {
   // 🟢 Cancel (Delete) Order — remove instantly from UI
   const cancelOrder = async (orderId) => {
     try {
-      const res = await axios.delete(`http://localhost:5000/api/orders/cancel/${orderId}`);
-      if (res.status === 200) {
-        alert("✅ Order cancelled and deleted successfully!");
-        // remove instantly
-        setOrders((prev) => prev.filter((order) => order._id !== orderId));
-      }
+      const res = await del(`/orders/cancel/${orderId}`);
+      alert(res.message || "✅ Order cancelled successfully!");
+      setOrders((prev) => prev.filter((order) => order._id !== orderId));
     } catch (error) {
       console.error("❌ Error cancelling order:", error);
       alert("Failed to cancel order");
@@ -78,8 +75,8 @@ const BuyerDashboard = () => {
     e.preventDefault();
     try {
       const dataToSend = { ...formData, userId: buyer._id };
-      const res = await axios.post("http://localhost:5000/api/address/add", dataToSend);
-      alert(res.data.message || "Address added!");
+      const res = await post("/address/add", dataToSend);
+      alert(res.message || "Address added!");
       setShowForm(false);
       setFormData({ name: "", mobile: "", street: "", city: "", state: "", pincode: "" });
       fetchAddresses();

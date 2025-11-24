@@ -1,19 +1,23 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { get } from "../services/api"; // ✅ import get function
 
 const DiscountForYou = () => {
   const [discountProducts, setDiscountProducts] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/products")
-      .then((res) => res.json())
-      .then((data) => {
-        // 🔹 Filter products with discount > 0
+    const fetchDiscountedProducts = async () => {
+      try {
+        const data = await get("/products"); // ✅ Render-ready
         const discounted = data.filter((p) => p.discount && p.discount > 0);
         setDiscountProducts(discounted);
-      })
-      .catch((err) => console.error("Error fetching products:", err));
+      } catch (err) {
+        console.error("Error fetching products:", err);
+      }
+    };
+
+    fetchDiscountedProducts();
   }, []);
 
   return (
